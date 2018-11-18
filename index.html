@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<head>
+  <link rel="apple-touch-icon" sizes="76x76" href="assets/img/apple-icon.png">
+  <link rel="icon" type="image/png" href="assets/img/favicon.png">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <title>
+    Richard Kanigoski
+  </title>
+  <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
+  <link href="assets/css/material-kit.css?v=2.0.4" rel="stylesheet" />
+</head>
+<body class="landing-page sidebar-collapse">
+    <div class="container">
+        <div class="row">
+            <div class="card text-center">
+                <div class="card-header">
+                    <ul class="nav nav-pills card-header-pills">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#0">Venda</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="cad_tipo_produto.html">Tipos de Produtos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="cad_produto.html">Produtos</a>
+                    </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <h4 class="card-title">Venda de Produtos</h4>
+                    <a href="#0" class="btn btn-success" data-toggle="modal" onClick="carregarProdutos()" data-target="#modal_cadastrar_venda">Cadastrar</a>
+                    <table class="table table-hover" id="tabela_produtos">
+                        <thead>
+                            <tr>
+                                <td>Descrição</td>
+                                <td>Valor Produto (R$)</td>
+                                <td>Valor Tributos (R$)</td>
+                                <td>Quantidade</td>
+                                <td></td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan='5'>Aperte em "Cadastrar" para adicionar produtos!</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td align="right">Totais</td>
+                                <td id="tr_total_produto"></td>
+                                <td id="tr_total_tributo"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="modal_cadastrar_venda" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <form id="adicionar_venda" action="#">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Cadastro de Tipo de Produto</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-row">
+                                <div class="form-group col-md-9">
+                                    <label for="select_produto">Produtos</label>
+                                    <select class="form-control selectpicker" data-style="btn btn-link" id="select_produto" required>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-3">
+                                    <label for="input_quantidade">Quantidade</label>
+                                    <input type="number" class="form-control" id="input_quantidade" placeholder="Quantidade" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-success">Adicionar</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="assets/js/core/popper.min.js" type="text/javascript"></script>
+    <script src="assets/js/core/jquery.min.js" type="text/javascript"></script>
+    <script src="assets/js/core/bootstrap-material-design.min.js" type="text/javascript"></script>
+    <script src="assets/js/plugins/nouislider.min.js" type="text/javascript"></script>
+    <script src="assets/js/material-kit.js?v=2.0.4" type="text/javascript"></script>
+    <script>
+        var total_tributo = 0;
+        var total_produto = 0;
+        var valores = [];
+
+        $("#adicionar_venda").submit(function(event) {
+            event.preventDefault();
+
+            var valor_produto = $("#select_produto").val().split("|")[0];
+            var valor_tributo = $("#select_produto").val().split("|")[1];
+            var desc_produto = $("#select_produto").val().split("|")[2];
+            var quantidade = $("#input_quantidade").val();
+            var calcular_tributo = 0;
+
+            calcular_tributo = (valor_produto * valor_tributo) / 100
+            total_tributo = total_tributo + (calcular_tributo * quantidade);
+            total_produto = total_produto + (valor_produto * quantidade);
+
+            valores.push ({
+                "desc_produto" : desc_produto,
+                "valor_produto" : valor_produto,
+                "total_tributo" : calcular_tributo * quantidade,
+                "total_produto" : valor_produto * quantidade,
+                "calcular_tributo" : calcular_tributo,
+                "quantidade" : quantidade
+            })
+            $("#select_produto").val("");
+            $("#input_quantidade").val("");
+            $('#modal_cadastrar_venda').modal('hide');
+
+            atualizarValor();
+        });
+
+        function atualizarValor() {
+            $("#tabela_produtos tbody").html("");
+            if (valores.length > 0) {
+                for (var index = 0; index < valores.length; index++) {
+                    $("#tabela_produtos tbody").append(
+                        "<tr>"+
+                            "<td>"+valores[index].desc_produto+"</td>"+
+                            "<td>"+valores[index].valor_produto+"</td>"+
+                            "<td>"+valores[index].calcular_tributo+"</td>"+
+                            "<td>"+valores[index].quantidade+"</td>"+
+                            "<td>"+
+                                "<button class='btn btn-danger btn-fab btn-fab-mini btn-round' onClick='remover("+index+")'>"+
+                                    "<i class='material-icons'>delete</i>"+
+                                "</button>"+
+                            "</td>"+
+                        "</tr>"
+                    )
+                }
+            } else {
+                $("#tabela_produtos tbody").append(
+                    "<tr>"+
+                        "<td colspan='4'>Aperte em \"Cadastrar\" para adicionar produtos!</td>"+
+                    "</tr>"
+                );
+            }
+            $("#tr_total_produto").html("R$" + total_produto);
+            $("#tr_total_tributo").html("R$" + total_tributo);
+        }
+
+        function remover(index) {
+            if(confirm("Deseja mesmo remover o produto ("+valores[index].desc_produto+")?")) {
+                total_produto = total_produto - parseFloat(valores[index].total_produto);
+                total_tributo = total_tributo - parseFloat(valores[index].total_tributo);
+                valores.splice(index , 1);
+                atualizarValor();
+            }
+        }
+
+        function carregarProdutos() {
+            var valores = "<option value=''>Selecione...</option>";
+            $.ajax({
+                url : "php/cad_produto.php",
+                data : "carregar",
+                type : "POST",
+                cache: false,
+                beforeSend : function(){
+                },
+                success : function(retorno) {
+                    if (retorno != "") {
+                        var dados = JSON.parse(retorno);
+
+                        if(dados[0].erro) {
+                            console.log(dados[0].erro);
+                        } else {
+                            for(var i = 0; i < dados.length; i++){
+                                valores = valores + "<option value='"+dados[i].tributo+"|"+dados[i].valor+"|"+dados[i].descricao+"'>"+dados[i].descricao+"</option>"
+                            }
+                        }
+                    }
+                    $("#select_produto").html(valores);
+                }
+            });
+        }
+    </script>
+</body>

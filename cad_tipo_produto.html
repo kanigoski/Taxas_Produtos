@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<head>
+  <link rel="apple-touch-icon" sizes="76x76" href="assets/img/apple-icon.png">
+  <link rel="icon" type="image/png" href="assets/img/favicon.png">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <title>
+    Richard Kanigoski
+  </title>
+  <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:400,700|Material+Icons" />
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
+  <link href="assets/css/material-kit.css?v=2.0.4" rel="stylesheet" />
+</head>
+<body class="landing-page sidebar-collapse" onLoad="carregarDados()">
+    <div class="container">
+        <div class="row">
+            <div class="card text-center">
+                <div class="card-header">
+                    <ul class="nav nav-pills card-header-pills">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Venda</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#0">Tipos de Produtos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="cad_produto.html">Produtos</a>
+                    </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <h4 class="card-title">Tipos de Produtos</h4>
+                    <a href="#0" class="btn btn-success" data-toggle="modal" data-target="#cadastro_tipo_produto">Cadastrar</a>
+                    <table id="tabela_tipo_produto" class="table table-hover">
+                        <thead>
+                            <tr>
+                                <td>#</td>
+                                <td>Descrição</td>
+                                <td>Tributo (%)</td>
+                                <td></td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan='5'>Aperte em "Cadastrar" para adicionar produtos!</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="cadastro_tipo_produto" tabindex="-1" role="dialog" aria-labelledby="cadastroTipoProduto" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="cadastroTipoProduto">Cadastro de Tipo de Produto</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form id="cadastrar_tipo_produto" action="#">
+                        <div class="modal-body">
+                            <div class="form-row">
+                                <div class="form-group col-md-9">
+                                    <label for="input_descricao">Descrição</label>
+                                    <input type="text" class="form-control" id="input_descricao" placeholder="Descrição" required>
+                                </div>
+                                <div class="form-group col-md-3">
+                                    <label for="input_tributos">Tributos (%)</label>
+                                    <input type="number" max="100" step="0.01" class="form-control" id="input_tributos" placeholder="Tributos (%)" required>
+                                </div>
+                            </div>
+                            <div id="desc_mensagem_erro"></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-success">Gravar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/core/popper.min.js" type="text/javascript"></script>
+    <script src="assets/js/core/jquery.min.js" type="text/javascript"></script>
+    <script src="assets/js/core/bootstrap-material-design.min.js" type="text/javascript"></script>
+    <script src="assets/js/plugins/nouislider.min.js" type="text/javascript"></script>
+    <script src="assets/js/material-kit.js?v=2.0.4" type="text/javascript"></script>
+    <script>
+        $("#cadastrar_tipo_produto").submit(function(event) {
+            $.ajax({
+                url : "php/cad_tipo_produto.php",
+                type : 'POST',
+                cache: false,
+                data : {
+                    registrar : "",
+                    descricao : $("#input_descricao").val(),
+                    tributos : $("#input_tributos").val()
+                },
+                beforeSend : function(){
+                    $("#resultado").html("ENVIANDO...");
+                },
+                success : function(retorno) {
+                    if (retorno != "") {
+                        var dados = JSON.parse(retorno);
+
+                        if(dados[0].erro) {
+                            $("#desc_mensagem_erro").html(dados[0].erro);
+                        }
+                    } else {
+                        $('#cadastro_tipo_produto').modal('hide');
+                        $("#input_descricao").val("");
+                        $("#input_tributos").val("");
+                        carregarDados();
+                    }
+                }
+            })
+        });
+
+        function carregarDados() {
+            var itens = "";
+
+            $.ajax({
+                url : "php/cad_tipo_produto.php",
+                data : "carregar",
+                type : "POST",
+                cache: false,
+                beforeSend : function(){
+                },
+                success : function(retorno) {
+                    if (retorno != "") {
+                        var dados = JSON.parse(retorno);
+
+                        if(dados[0].erro) {
+                            itens += "<tr>";
+                            itens += "<td colspan='5'>"+dados[0].erro+"</td>";
+                            itens += "</tr>";
+                        } else {
+                            for(var i = 0; i < dados.length; i++){
+                                itens += "<tr>";
+                                itens += "<td>" + dados[i].id_tipo_produto + "</td>";
+                                itens += "<td>" + dados[i].descricao + "</td>";
+                                itens += "<td>" + dados[i].tributo + "</td>";
+                                itens += "<td>"+
+                                            "<button class='btn btn-danger btn-fab btn-fab-mini btn-round' onClick='remover("+dados[i].id_tipo_produto+")'>"+
+                                                "<i class='material-icons'>delete</i>"+
+                                            "</button></td>";
+                                itens += "</tr>";
+                            }
+                        }
+                    } else {
+                        itens += "<tr>";
+                        itens += "<td colspan='5'>Aperte em \"Cadastrar\" para adicionar tipo de produtos!</td>";
+                        itens += "</tr>";
+                    }
+                    $("#tabela_tipo_produto tbody").html(itens);
+                }
+            });
+        }
+
+        function remover(id_tipo_produto) {
+            if(confirm("Deseja mesmo remover o tipo de produto ("+id_tipo_produto+")?")) {
+                $.ajax({
+                    url : "php/cad_tipo_produto.php",
+                    data : "remover="+id_tipo_produto,
+                    type : "POST",
+                    cache: false,
+                    beforeSend : function(){
+                    },
+                    success : function(retorno) {
+                        carregarDados();
+                    }
+                });
+            }
+        }
+    </script>
+</body>
